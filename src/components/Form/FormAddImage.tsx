@@ -11,6 +11,11 @@ interface FormAddImageProps {
   closeModal: () => void;
 }
 
+type FormPost = {
+  title: string;
+  description: string;
+  url: string;
+};
 export function FormAddImage({ closeModal }: FormAddImageProps): JSX.Element {
   const [imageUrl, setImageUrl] = useState('');
   const [localImageUrl, setLocalImageUrl] = useState('');
@@ -31,20 +36,42 @@ export function FormAddImage({ closeModal }: FormAddImageProps): JSX.Element {
     title: {
       // TODO REQUIRED, MIN AND MAX LENGTH VALIDATIONS
       required: 'Titulo obrigatório',
-      minLength: 2,
-      maxLength: 20,
+      minLength: {
+        value: 2,
+        message: 'minimo de',
+      },
+      maxLength: {
+        value: 20,
+        message: 'maximo de',
+      },
     },
     description: {
       // TODO REQUIRED, MAX LENGTH VALIDATIONS
       required: 'Descrição obrigatória',
-      maxLength: 65,
+      maxLength: { value: 65, message: 'maximo de ' },
     },
   };
 
   const queryClient = useQueryClient();
   const mutation = useMutation(
+    (images: FormPost) => {
+      const reponse = api.post('/api/images', {
+        ...images,
+      });
+      return reponse;
+    },
     // TODO MUTATION API POST REQUEST,
     {
+      onSuccess: () => {
+        queryClient.invalidateQueries('images');
+        toast({
+          title: 'Sucesso',
+          description: 'Sucesso.',
+          status: 'success',
+          duration: 5000,
+          isClosable: true,
+        });
+      },
       // TODO ONSUCCESS MUTATION
     }
   );
@@ -55,11 +82,34 @@ export function FormAddImage({ closeModal }: FormAddImageProps): JSX.Element {
 
   const onSubmit = async (data: Record<string, unknown>): Promise<void> => {
     try {
-      console.log(data);
+      const FormData = {
+        title: data.title,
+        description: data.description,
+        url: imageUrl,
+      } as FormPost;
+
+      mutation.mutateAsync(FormData);
+
+      if (!FormData.url) {
+        toast({
+          title: 'Url não existe',
+          description: 'Url não existe.',
+          status: 'error',
+          duration: 5000,
+          isClosable: true,
+        });
+      }
       // TODO SHOW ERROR TOAST IF IMAGE URL DOES NOT EXISTS
       // TODO EXECUTE ASYNC MUTATION
       // TODO SHOW SUCCESS TOAST
-    } catch {
+    } catch (err) {
+      toast({
+        title: err,
+        description: err,
+        status: 'error',
+        duration: 5000,
+        isClosable: true,
+      });
       // TODO SHOW ERROR TOAST IF SUBMIT FAILED
     } finally {
       // TODO CLEAN FORM, STATES AND CLOSE MODAL
