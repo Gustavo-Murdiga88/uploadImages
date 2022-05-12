@@ -29,22 +29,12 @@ export default function Home(): JSX.Element {
 
   const formattedData = useMemo(() => {
     // TODO FORMAT AND FLAT DATA ARRAY
-    const response = data?.pages
-      .map(datas => {
-        return {
-          title: datas.data.title,
-          description: datas.data.description,
-          url: datas.data.url,
-          ts: datas.data.ts,
-          id: datas.data.id,
-        };
-      })
-      .flat();
+    const response = data?.pages.map(datas => {
+      return datas.data;
+    });
 
-    return response;
+    return response?.map(item => item.data).flat();
   }, [data]);
-
-  console.log(formattedData);
 
   // TODO RENDER LOADING SCREEN
 
